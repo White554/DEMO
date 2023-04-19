@@ -6,8 +6,7 @@
         <Recommand/>
         <Rank/>
         <Like/>
-        <Floor/>
-        <Floor/>
+        <Floor v-for="item in floorList" :key="item.id" :list="item"/>
         <Brand/>
     </div>
 </template>
@@ -34,10 +33,14 @@ export default {
         Floor,
         Brand
     },
-    computed: {    },
-    methods: {
-
+    mounted() {
+      // 派发获取floor数据
+      this.$store.dispatch('homeStore/getFloorList');
+    },
+    computed: {
+      ...mapState('homeStore', ['floorList'])
     }
+    
 }
 </script>
 

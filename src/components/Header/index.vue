@@ -6,16 +6,17 @@
       <div class="container">
         <div class="loginList">
           <p>尚品汇欢迎您！</p>
-          <p>
+          <p v-if="!userName">
             <span>请</span>
             <router-link to="/login">登录</router-link>
             <router-link to="/register" class="register">免费注册</router-link>
           </p>
+          <p v-else>{{userName}} |  <span @click="userOut">退出登录</span></p>
         </div>
         <div class="typeList">
-          <a href="###">我的订单</a>
-          <a href="###">我的购物车</a>
-          <a href="###">我的尚品汇</a>
+          <router-link to="/pay">我的订单</router-link>
+          <router-link to="/shopcart">我的购物车</router-link>
+          <a href="###">我的尚品汇</a>  
           <a href="###">尚品汇会员</a>
           <a href="###">企业采购</a>
           <a href="###">关注尚品汇</a>
@@ -27,7 +28,7 @@
     <!--头部第二行 搜索区域-->
     <div class="bottom">
       <h1 class="logoArea">
-        <router-link to="/home" class="logo" >
+        <router-link to="/home" class="logo">
           <img src="./images/logo.png" alt="" />
         </router-link>
       </h1>
@@ -39,7 +40,11 @@
             id="autocomplete"
             class="input-error input-xxlarge"
           />
-          <button class="sui-btn btn-xlarge btn-danger" type="button" @click="goSearch">
+          <button
+            class="sui-btn btn-xlarge btn-danger"
+            type="button"
+            @click="goSearch"
+          >
             搜索
           </button>
         </form>
@@ -50,25 +55,46 @@
 
 <script>
 export default {
-    name: 'Header',
-    data() {
-        return {
-            searchStr: ''
-        }
+  name: "Header",
+  data() {
+    return {
+      searchStr: "",
+    };
+  },
+  methods: {
+    goSearch() {
+      // 不传参
+      // this.$router.push('/search')
+
+      // 1 字符串传参
+      // this.$router.push('/search/' + this.searchStr + '?k=' + this.searchStr.toUpperCase())
+
+      // 2 对象传参 path不能和params一起使用，一起使用params会被忽略，导致跳转失败
+      let location = {name: "search"};
+      location.params = { keyword: this.searchStr }
+      location.query = this.$route.query;
+      this.$router.push(location);
     },
-    methods: {
-        goSearch() {
-            // 不传参
-            // this.$router.push('/search')
-
-            // 1 字符串传参
-            // this.$router.push('/search/' + this.searchStr + '?k=' + this.searchStr.toUpperCase())
-
-            // 2 对象传参 path不能和params一起使用，一起使用params会被忽略，导致跳转失败
-            this.$router.push({name: 'search', params: {searchStr: this.searchStr}, query:{k: this.searchStr.toUpperCase()}})
-            this.searchStr = ''
-        }
+    // 退出登录
+    async userOut() {
+      try {
+        this.$store.dispatch('userStore/logOut')
+        this.$router.push('/home')
+      } catch (error) {
+        alert(error.message)
+      }
     }
+  },
+  mounted() {
+    this.$bus.$on('clear', () => {
+      this.searchStr = ''
+    })
+  },
+  computed: {
+    userName() {
+      return this.$store.state.userStore.userInfo.name
+    }
+  }
 };
 </script>
 

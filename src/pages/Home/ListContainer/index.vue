@@ -3,29 +3,7 @@
   <div class="list-container">
     <div class="sortList clearfix">
       <div class="center">
-        <!--banner轮播-->
-        <div class="swiper-container" id="mySwiper">
-          <div class="swiper-wrapper">
-            <div class="swiper-slide">
-              <img src="./images/banner1.jpg" />
-            </div>
-            <!-- <div class="swiper-slide">
-              <img src="./images/banner2.jpg" />
-            </div>
-            <div class="swiper-slide">
-              <img src="./images/banner3.jpg" />
-            </div>
-            <div class="swiper-slide">
-              <img src="./images/banner4.jpg" />
-            </div> -->
-          </div>
-          <!-- 如果需要分页器 -->
-          <div class="swiper-pagination"></div>
-
-          <!-- 如果需要导航按钮 -->
-          <div class="swiper-button-prev"></div>
-          <div class="swiper-button-next"></div>
-        </div>
+        <Carousel :list="bannerList"/>
       </div>
       <div class="right">
         <div class="news">
@@ -101,8 +79,19 @@
 </template>
 
 <script>
+import {mapState} from 'vuex'
+
 export default {
   name: "ListContainer",
+  mounted() {
+    // 派发action 通过Vuex发起ajax请求，将数据存储在仓库中
+    this.$store.dispatch('homeStore/getBannerList')
+  },
+  computed: {
+    ...mapState('homeStore',
+      ['bannerList']
+    )
+  },
 };
 </script>
 
@@ -112,20 +101,21 @@ export default {
   margin: 0 auto;
 
   .sortList {
-    height: 464px;
+    height: 500px;
     padding-left: 210px;
 
     .center {
       box-sizing: border-box;
       width: 740px;
       height: 100%;
-      padding: 5px;
+      padding: 22.5px;
       float: left;
     }
 
     .right {
       float: left;
       width: 250px;
+      margin-top: 17.5px;
 
       .news {
         border: 1px solid #e4e4e4;
@@ -177,7 +167,7 @@ export default {
           width: 25%;
 
           .list-item {
-            background-image: url(./images/icons.png);
+            background-image: url(~@/assets/images/icons.png);
             width: 61px;
             height: 40px;
             display: block;

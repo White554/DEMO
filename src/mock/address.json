@@ -1,0 +1,35 @@
+[
+    {
+        "consignee": "张飞",
+        "fullAddress": "湖南长沙市天心区123",
+        "id": "1351224",
+        "isDefault": "0",
+        "phoneNumber": "1351351351351",
+        "provinceId": "1",
+        "reginoId": "1",
+        "userAddress": "长沙市天心区123",
+        "userId": "1"
+    },
+    {
+        "consignee": "刘备",
+        "fullAddress": "江西武昌市天心区123",
+        "id": "155326",
+        "isDefault": "1",
+        "phoneNumber": "15698541426",
+        "provinceId": "1",
+        "reginoId": "2",
+        "userAddress": "武昌市天心区123",
+        "userId": "2"
+    },
+    {
+        "consignee": "二爷",
+        "fullAddress": "上海上海市黄浦区中心123",
+        "id": "146962",
+        "isDefault": "0",
+        "phoneNumber": "19863214",
+        "provinceId": "1",
+        "reginoId": "3",
+        "userAddress": "上海市黄浦区中心123",
+        "userId": "3"
+    }
+]

@@ -2,14 +2,15 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
+// 引入路由信息
+import routes from './routes'
+
+// 导入仓库token数据
+import store from '@/store'
+
 // 使用路由插件
 Vue.use(VueRouter)
 
-// 导入路由组件
-import Home from '@/pages/Home'
-import Search from '@/pages/Search'
-import Login from '@/pages/Login'
-import Register from '@/pages/Register'
 
 // 重写push|repplace方法 解决NavigationDuplicated警告  因为重复跳转到同一个地址导致的
 let orginPush = VueRouter.prototype.push
@@ -30,42 +31,40 @@ VueRouter.prototype.replace = function(location,resolve,reject) {
     }
 }
 
+var route = new VueRouter({
+    routes,
+    scrollBehavior (to, from, savedPosition) {
+        // y == 0 代表回到最顶部
+       return {y :0};
+    }
+})
+
+// 路由前置守卫判断是否登录
+route.beforeEach(async (to, from, next) => {
+    // 派发获取用户信息
+    
+    // 使用token判断是否登录 以及是否再次跳转到登陆页
+    let token = store.state.userStore.token
+    if (to.fullPath === '/login' && token || to.fullPath === '/register' && token) {
+        next(from.fullPath)
+    } else if (to.fullPath === '/trade') {
+        if (token) {
+            next()
+        } else {
+            next('/login')
+        }
+    } else  {
+        try {
+           await store.dispatch('userStore/UserInfoGet');
+        } catch (error) {
+            await store.dispatch('userStore/logOut');
+        }
+        if (to.meta.needToken && !token) {
+            next('/login?redirect=' + to.fullPath)
+        }
+        next()
+    }
+})
 
 // 配置路由
-export default new VueRouter({
-    routes: [
-        {
-            path: '/home',
-            component: Home,
-            meta: {showFooter: true}
-        },
-        {
-            path: '/search/:searchStr?',
-            component: Search,
-            meta: {showFooter: true},
-            name: 'search',
-            // 1 布尔值：只有params参数
-            // props: true
-            // 2 对象：额外增加参数
-            // props: {a:11, b:234}
-            // 函数形式 可以对params参数和query参数处理
-            props: ($route) => ({searchStr: $route.params.searchStr + '---', k: $route.query.k + '---'})
-        },
-        {
-            path: '/login',
-            component: Login,
-            meta: {showFooter: false}
-        },
-        {
-            path: '/Register',
-            component: Register,
-            meta: {showFooter: false}
-        },
-        // 重定向
-        {
-            path: '*',
-            redirect: '/home'
-        }
-
-    ]
-})
+export default route

@@ -2,46 +2,69 @@
   <!-- 商品分类导航 -->
   <div class="type-nav">
     <div class="container">
-        <!-- 事件委派机制 子组件事件由父组件代理 -->
-        <div @mouseleave="resetIndex">
-            <h2 class="all">全部商品分类</h2>
-            <div class="sort">
-        <div class="all-sort-list2">
-          <div class="item"
-            v-for="(c1, index) in categoryList"
-            :key="c1.categoryId"
-            @mouseenter="addIndex(index)"
-            :class="{cur: navIndex === index}"
-          >
-            <h3>
-              <a href="">{{ c1.categoryName }}</a>
-            </h3>
-            <div class="item-list clearfix">
+      <!-- 事件委派机制 子组件事件由父组件代理 -->
+      <div @mouseleave="resetIndex" @mouseenter="enterShow">
+        <h2 class="all">全部商品分类</h2>
+        <!-- 过度动画 （必须带有v-show或v-if属性）-->
+        <transition name="sort">
+          <div class="sort" v-show="show">
+            <!-- 点击事件委派 -->
+            <div class="all-sort-list2" @click="goSearch">
+              <!-- 一级导航 -->
               <div
-                class="subitem"
-                v-for="(c2, index) in c1.categoryChild"
-                :key="c2.categoryId"
+                class="item"
+                v-for="(c1, index) in categoryList"
+                :key="c1.categoryId"
+                @mouseenter="addIndex(index)"
+                :class="{ cur: navIndex === index }"
               >
-                <dl class="fore">
-                  <dt>
-                    <a href="">{{ c2.categoryName }}</a>
-                  </dt>
-                  <dd>
-                    <em
-                      v-for="(c3, index) in c2.categoryChild"
-                      :key="c3.categoryId"
-                    >
-                      <a href="">{{ c3.categoryName }}</a>
-                    </em>
-                  </dd>
-                </dl>
+                <h3>
+                  <a
+                    :data-categoryName="c1.categoryName"
+                    :data-category1Id="c1.categoryId"
+                    >{{ c1.categoryName }}</a
+                  >
+                </h3>
+                <!-- 二级导航 -->
+                <div
+                  class="item-list clearfix"
+                  :style="{ display: navIndex === index ? 'block' : 'none' }"
+                >
+                  <div
+                    class="subitem"
+                    v-for="(c2) in c1.categoryChild"
+                    :key="c2.categoryId"
+                  >
+                    <dl class="fore">
+                      <dt>
+                        <a
+                          :data-categoryName="c2.categoryName"
+                          :data-category2Id="c2.categoryId"
+                          >{{ c2.categoryName }}</a
+                        >
+                      </dt>
+                      <dd>
+                        <!-- 三级导航 -->
+                        <em
+                          v-for="(c3) in c2.categoryChild"
+                          :key="c3.categoryId"
+                        >
+                          <a
+                            :data-categoryName="c3.categoryName"
+                            :data-category3Id="c3.categoryId"
+                            >{{ c3.categoryName }}</a
+                          >
+                        </em>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </transition>
       </div>
-        </div>
-   
+
       <nav class="nav">
         <a href="###">服装城</a>
         <a href="###">美妆馆</a>
@@ -59,30 +82,64 @@
 
 <script>
 import { mapState } from "vuex";
+// 按需引入节流函数
+import throttle from "loadsh/throttle";
+
 export default {
-    name: "TypeNav",
-    data() {
-        return {
-            navIndex: -1
-        }
-    },
-    // 挂在完成通知store请求数据
-    mounted() {
-        this.$store.dispatch("reqCategoryList");
-    },
-    computed: {
-        ...mapState({
-        categoryList: (state) => state.homeStore.categoryList,
-        }),
-    },
-    methods: {
-        addIndex(index) {
-            this.navIndex = index
-        },
-        resetIndex() {
-            this.navIndex = -1
-        }
+  name: "TypeNav",
+  data() {
+    return {
+      navIndex: -1,
+      show: true,
+    };
+  },
+  mounted() {
+    // 判断路径，如果为搜索页面默认不展示
+    if (this.$route.path !== "/home") {
+      this.show = false;
     }
+  },
+  computed: {
+    ...mapState("homeStore", ["categoryList"]),
+  },
+  methods: {
+    addIndex: throttle(function (index) {
+      this.navIndex = index;
+    }, 50),
+    resetIndex() {
+      if (this.$route.path != "/home") {
+        this.show = false;
+      }
+      this.navIndex = -1;
+    },
+    goSearch(e) {
+      // 获取触发点击的元素
+      let element = e.target;
+      let { categoryname, category1id, category2id, category3id } =
+        element.dataset;
+      // 准备路由参数
+      let location = { name: "search" };
+      let query = { categoryName: categoryname };
+      // 判断点击的是否为三级导航
+      if (categoryname) {
+        if (category1id) {
+          query.category1Id = category1id;
+        } else if (category2id) {
+          query.category2Id = category2id;
+        } else if (category3id) {
+          query.category3Id = category3id;
+        }
+      }
+      if (this.$route.params) {
+        location.params = this.$route.params;
+        location.query = query;
+        this.$router.push(location);
+      }
+    },
+    enterShow() {
+      this.show = true;
+    },
+  },
 };
 </script>
 
@@ -122,7 +179,7 @@ export default {
       left: 0;
       top: 45px;
       width: 210px;
-      height: 461px;
+      height: 500px;
       position: absolute;
       background: #fafafa;
       z-index: 999;
@@ -195,17 +252,36 @@ export default {
               }
             }
           }
-
-          &:hover {
-            .item-list {
-              display: block;
-            }
-          }
         }
         .cur {
-            background-color: skyblue;
+          background-color: skyblue;
         }
       }
+    }
+
+    // 过度动画样式
+    // 过度动画进入
+    .sort-enter {
+      height: 0;
+    }
+    // 过度动画结束
+    .sort-enter-to {
+      height: 461px;
+    }
+    // 定义动画时间 速率
+    .sort-enter-active {
+      transition: all 0.3s linear;
+    }
+
+    .sort-leave-from {
+      height: 461px;
+    }
+    .sort-leave-to {
+      height: 0;
+    }
+    // 定义动画时间 速率
+    .sort-leave-active {
+      transition: all 0.3s linear;
     }
   }
 }
